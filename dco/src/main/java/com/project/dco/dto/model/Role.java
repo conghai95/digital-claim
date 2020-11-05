@@ -10,14 +10,8 @@ import javax.persistence.*;
 public class Role {
 
     @Id
-    String roleId;
+    Integer id;
 
     @Column(name = "role_name")
-    RoleName roleName;
-
-    @Column(name = "create_at")
-    String createAt;
-
-    @Column(name = "is_disable")
-    String isDisabled;
+    String roleName;
 }

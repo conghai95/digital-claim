@@ -1,5 +1,6 @@
 package com.project.dco_common.api;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -11,6 +12,9 @@ public class AppResponseEntity<T> extends ResponseEntity<ResponseBody<T>> {
         super(body, status);
     }
 
+    public AppResponseEntity(ResponseBody<T> body, HttpHeaders httpHeaders, HttpStatus status) {
+        super(body, httpHeaders, status);
+    }
 
     public static <T> AppResponseEntity<T> withError(HttpStatusResponse status) {
         return new AppResponseEntity<T>(
@@ -33,6 +37,12 @@ public class AppResponseEntity<T> extends ResponseEntity<ResponseBody<T>> {
         status.setMessage(message);
         return new AppResponseEntity<T>(
                 ResponseBody.<T>builder().data(data).status(status).build(), HttpStatus.OK);
+    }
+
+    public static <T> AppResponseEntity<T> withSuccess(T data, HttpHeaders headers) {
+        status.setMessage("Successfully!");
+        return new AppResponseEntity<T>(
+                ResponseBody.<T>builder().data(data).status(status).build(), headers, HttpStatus.OK);
     }
 
 }

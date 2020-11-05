@@ -1,16 +1,25 @@
 package com.project.dco.controller;
 
+import com.project.dco.dto.model.Claim;
+import com.project.dco.dto.request.CreateClaimRequest;
+import com.project.dco.service.ClaimService;
 import com.project.dco_common.api.AppResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.project.dco_common.utils.JsonHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(value = "/claims")
 public class ClaimController {
 
-    @GetMapping
-    public AppResponseEntity<?> getClaims() {
-        return AppResponseEntity.withSuccess("Hello world");
+    @Autowired
+    private ClaimService claimService;
+
+    @PostMapping(value = "/create")
+    public AppResponseEntity<?> createNewClaim(@RequestPart("createClaimRequest") String createClaimRequest, @RequestPart("files") MultipartFile[] multipartFile) {
+        CreateClaimRequest claimRequest = JsonHelper.convertJson2Object(createClaimRequest, CreateClaimRequest.class);
+        Claim res = claimService.createNewClaim(claimRequest, multipartFile);
+        return AppResponseEntity.withSuccess(res);
     }
 }
