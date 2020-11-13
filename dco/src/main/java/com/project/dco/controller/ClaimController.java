@@ -22,4 +22,14 @@ public class ClaimController {
         Claim res = claimService.createNewClaim(claimRequest, multipartFile);
         return AppResponseEntity.withSuccess(res);
     }
+
+    @PostMapping(value = "/add")
+    public AppResponseEntity<?> addNewClaim(@RequestBody Claim claim) {
+        return AppResponseEntity.withSuccess(claimService.addNewClaim(claim));
+    }
+
+    @GetMapping(value = "")
+    public AppResponseEntity<?> getClaimsInfo() {
+        return AppResponseEntity.withSuccess(claimService.getClaimInfo(952));
+    }
 }

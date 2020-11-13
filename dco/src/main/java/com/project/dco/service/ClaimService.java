@@ -7,4 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ClaimService {
 
     Claim createNewClaim(CreateClaimRequest createClaimRequest, MultipartFile[] MultipartFile);
+
+    String getClaimInfo(Integer id);
+
+    Claim addNewClaim(Claim claim);
 }

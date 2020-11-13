@@ -10,9 +10,13 @@ import com.project.dco.service.ClaimService;
 import com.project.dco.service.FileService;
 import com.project.dco_common.constants.DateTimeConstants;
 import com.project.dco_common.utils.DateTimeUtils;
+import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class ClaimServiceImpl implements ClaimService {
@@ -40,6 +44,31 @@ public class ClaimServiceImpl implements ClaimService {
         claimRepository.save(claim);
         fileService.uploadFile(multipartFiles);
         return claim;
+    }
+
+    @Override
+    public String getClaimInfo(Integer id) {
+        System.out.println(claimRepository.getClaimInfo(id).getClass());
+        return null;
+    }
+
+    @Override
+    public Claim addNewClaim(Claim claim) {
+        try {
+            Map<String, Object> nonImageVariableMap = new HashMap<>();
+//            nonImageVariableMap.put("claimTitle", claim.getClaimTitle());
+//            nonImageVariableMap.put("createBy", claim.getCreateBy());
+//            nonImageVariableMap.put("userClaimId", claim.getUserClaimId());
+//            nonImageVariableMap.put("userEndId", claim.getUserEndId());
+//            nonImageVariableMap.put("claimContent", claim.getClaimContent());
+            nonImageVariableMap.put("claim", claim);
+            nonImageVariableMap.put("abc", "abcxyz123456");
+
+            fileService.mergeAndGenerateOutput(TemplateEngineKind.Freemarker, nonImageVariableMap);
+        } catch (Exception e) {
+            System.out.println("error: " + e);
+        }
+        return null;
     }
 
     private void checkUserEndExist(CreateClaimRequest createClaimRequest) {
