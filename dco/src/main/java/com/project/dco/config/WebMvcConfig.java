@@ -31,7 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         mailSender.setPort(587);
 
         mailSender.setUsername("conghaibk95@gmail.com");
-        mailSender.setPassword("hai20135452");
+        mailSender.setPassword("123456");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
