@@ -37,8 +37,12 @@ public class MailServiceImpl implements MailService {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(sendMailRequest.getTo());
-        helper.setCc(sendMailRequest.getCc());
-        helper.setBcc(sendMailRequest.getBcc());
+        if (!StringUtils.isEmpty(sendMailRequest.getCc())) {
+            helper.setCc(sendMailRequest.getCc());
+        }
+        if (!StringUtils.isEmpty(sendMailRequest.getBcc())) {
+            helper.setBcc(sendMailRequest.getBcc());
+        }
         helper.setSubject(sendMailRequest.getSubject());
         helper.setText(sendMailRequest.getContent(), true);
 

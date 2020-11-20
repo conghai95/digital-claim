@@ -1,10 +1,8 @@
 package com.project.dco.dto.request;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class SendMailRequest {
 
     String from;
