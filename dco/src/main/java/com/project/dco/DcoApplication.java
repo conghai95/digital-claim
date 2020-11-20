@@ -7,22 +7,47 @@ import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 
 @SpringBootApplication
 public class DcoApplication {
 
 	public static void main(String[] args) throws XDocReportException, IOException {
-		SpringApplication.run(DcoApplication.class, args);
+//		SpringApplication.run(DcoApplication.class, args);
+//
+//		FieldsMetadata fieldsMetadata = new FieldsMetadata(TemplateEngineKind.Freemarker.name());
+//
+//		fieldsMetadata.load("createClaimRequest", CreateClaimRequest.class);
+//
+//		File xmlFieldsFile = new File("project.fields.xml");
+//		fieldsMetadata.saveXML(new FileOutputStream(xmlFieldsFile), true);
 
-		FieldsMetadata fieldsMetadata = new FieldsMetadata(TemplateEngineKind.Freemarker.name());
+		byte[] array = Files.readAllBytes(Paths.get("D:/share/file/abc.txt"));
+		String encodedString = Base64.getEncoder().encodeToString(array);
+		System.out.println("encodedString: " + encodedString);
 
-		fieldsMetadata.load("createClaimRequest", CreateClaimRequest.class);
+		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+		String decodedString = new String(decodedBytes);
 
-		File xmlFieldsFile = new File("project.fields.xml");
-		fieldsMetadata.saveXML(new FileOutputStream(xmlFieldsFile), true);
+		File file = new File("D:/share/file/music.txt");
+		file.createNewFile();
+		BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
+		bof.write(decodedString.getBytes());
+		System.out.println("decodedString: " + decodedString);
+		file.deleteOnExit();
+		FileInputStream in = new FileInputStream(file);
+		int i=0;
+		System.out.println("a: ");
+		while((i=in.read())!=-1){
+			System.out.print((char)i);
+		}
+		in.close();
+		bof.flush();
+		bof.close();
 	}
 
 }
