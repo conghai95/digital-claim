@@ -17,10 +17,12 @@ public class MailController {
     private MailService mailService;
 
     @PostMapping(value = "/send")
-    public AppResponseEntity<?> sendMail(@RequestPart("sendMailRequest") String sendMailRequest, @RequestPart("files") MultipartFile[] multipartFile) {
+    public AppResponseEntity<?> sendMail(@RequestPart("sendMailRequest") String sendMailRequest,
+                                         @RequestPart(name = "template", required = false) MultipartFile[] template,
+                                         @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(sendMailRequest, SendMailRequest.class);
-            return AppResponseEntity.withSuccess(mailService.sendMail(request, multipartFile));
+            return AppResponseEntity.withSuccess(mailService.sendMail(request, template, multipartFile));
         } catch (Exception e) {
             HttpStatusResponse status = new HttpStatusResponse();
             status.setCode("500");
@@ -31,10 +33,12 @@ public class MailController {
     }
 
     @PostMapping(value = "")
-    public AppResponseEntity<?> mailTo(@RequestPart("mail") String mail, @RequestPart("files") MultipartFile[] multipartFile) {
+    public AppResponseEntity<?> mailTo(@RequestPart("mail") String mail,
+                                       @RequestPart(name = "template", required = false) MultipartFile[] template,
+                                       @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
-            return AppResponseEntity.withSuccess(mailService.mailTo(request, multipartFile));
+            return AppResponseEntity.withSuccess(mailService.mailTo(request, template, multipartFile));
         } catch (Exception e) {
             HttpStatusResponse status = new HttpStatusResponse();
             status.setCode("500");

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -30,9 +31,11 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private MailRepository mailRepository;
 
+    private final String mailContentType = "text/html; charset=utf-8";
+
     // sending mail with default mail
     @Override
-    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException {
+    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -44,8 +47,7 @@ public class MailServiceImpl implements MailService {
             helper.setBcc(sendMailRequest.getBcc());
         }
         helper.setSubject(sendMailRequest.getSubject());
-        helper.setText(sendMailRequest.getContent(), true);
-
+        helper.setText(createContentMail(sendMailRequest, template), true);
         if (files != null && files.length > 0) {
             for (MultipartFile multipartFile : files) {
                 helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
@@ -57,11 +59,11 @@ public class MailServiceImpl implements MailService {
 
     // sending mail with dynamic mail from api
     @Override
-    public Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException, IOException {
+    public Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
         Message message = createMessageInstance(sendMailRequest);
 
         BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setContent(sendMailRequest.getContent(), "text/html; charset=utf-8");
+        messageBodyPart.setContent(createContentMail(sendMailRequest, template), mailContentType);
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -96,10 +98,23 @@ public class MailServiceImpl implements MailService {
             try {
                 accounts = PageableUtil.getSort(accounts, sortField, sortType, Mail.class);
             } catch (NoSuchFieldException e) {
-                System.out.println("sort is failed");
+                e.printStackTrace();
             }
         }
         return PageableUtil.getPageable(page, perPage, accounts);
+    }
+
+    private String createContentMail(SendMailRequest sendMailRequest, MultipartFile[] template) throws IOException {
+        StringBuilder content = new StringBuilder(sendMailRequest.getContent());
+        if (template != null && template.length > 0) {
+            for (MultipartFile tempt : template) {
+                String temptName = tempt.getOriginalFilename();
+                if ("html".equals(temptName.substring(temptName.lastIndexOf(".")))) {
+                    content.append("<br/>").append(new String(tempt.getBytes(), StandardCharsets.UTF_8));
+                }
+            }
+        }
+        return content.toString();
     }
 
     private Message createMessageInstance(SendMailRequest mail) throws MessagingException {
