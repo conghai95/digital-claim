@@ -1,37 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <fields templateEngineKind="Freemarker" >
 	<description><![CDATA[]]></description>
-	<field name="claim.claimContent" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.claimContent" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.claimFile" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.claimTitle" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.claimTitle" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.status" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.createBy" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.template" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.createOn" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.userClaimId" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.id" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.userEndId" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
-	<field name="claim.status" list="false" imageName="" syntaxKind="">
-		<description><![CDATA[]]></description>
-	</field>
-	<field name="claim.updateBy" list="false" imageName="" syntaxKind="">
-		<description><![CDATA[]]></description>
-	</field>
-	<field name="claim.updateOn" list="false" imageName="" syntaxKind="">
-		<description><![CDATA[]]></description>
-	</field>
-	<field name="claim.userClaimId" list="false" imageName="" syntaxKind="">
-		<description><![CDATA[]]></description>
-	</field>
-	<field name="claim.userEndId" list="false" imageName="" syntaxKind="">
+	<field name="createClaimRequest.userEndIdentifier" list="false" imageName="" syntaxKind="">
 		<description><![CDATA[]]></description>
 	</field>
 </fields>

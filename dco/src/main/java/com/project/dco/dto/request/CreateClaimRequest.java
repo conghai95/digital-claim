@@ -7,11 +7,9 @@ public class CreateClaimRequest {
 
     String claimTitle;
     String claimContent;
-    String claimFile;
+    String template;
     String userEndIdentifier;
-    String userPhone;
-    String userEmail;
-    String userAddress;
-    Integer userClaimsId;
     Integer userEndId;
+    Integer userClaimId;
+    String status;
 }

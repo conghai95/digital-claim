@@ -1,7 +1,6 @@
 package com.project.dco.service.iml;
 
 import com.project.dco.dao.ClaimRepository;
-import com.project.dco.dao.UserClaimsRepository;
 import com.project.dco.dao.UserEndRepository;
 import com.project.dco.dto.model.Claim;
 import com.project.dco.dto.model.UserEnd;
@@ -17,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ClaimServiceImpl implements ClaimService {
@@ -28,22 +28,18 @@ public class ClaimServiceImpl implements ClaimService {
     private UserEndRepository userEndRepository;
 
     @Autowired
-    private UserClaimsRepository userClaimsRepository;
-
-    @Autowired
     private FileService fileService;
 
     @Override
-    public Claim createNewClaim(CreateClaimRequest createClaimRequest, MultipartFile[] multipartFiles) {
+    public Optional<Claim> createNewClaim(CreateClaimRequest createClaimRequest, MultipartFile[] multipartFiles) {
         Claim claim = new Claim();
         checkUserEndExist(createClaimRequest);
         claim.setClaimTitle(createClaimRequest.getClaimTitle());
         claim.setClaimContent(createClaimRequest.getClaimContent());
-        claim.setUserClaimId(createClaimRequest.getUserClaimsId());
         claim.setUserEndId(createClaimRequest.getUserEndId());
         claimRepository.save(claim);
         fileService.uploadFile(multipartFiles);
-        return claim;
+        return Optional.of(claim);
     }
 
     @Override
@@ -53,22 +49,23 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
-    public Claim addNewClaim(Claim claim) {
+    public Optional<CreateClaimRequest> addNewClaim(CreateClaimRequest createClaimRequest) {
         try {
             Map<String, Object> nonImageVariableMap = new HashMap<>();
-//            nonImageVariableMap.put("claimTitle", claim.getClaimTitle());
-//            nonImageVariableMap.put("createBy", claim.getCreateBy());
-//            nonImageVariableMap.put("userClaimId", claim.getUserClaimId());
-//            nonImageVariableMap.put("userEndId", claim.getUserEndId());
-//            nonImageVariableMap.put("claimContent", claim.getClaimContent());
-            nonImageVariableMap.put("claim", claim);
-            nonImageVariableMap.put("abc", "abcxyz123456");
+            nonImageVariableMap.put("createClaimRequest", createClaimRequest);
 
-            fileService.mergeAndGenerateOutput(TemplateEngineKind.Freemarker, nonImageVariableMap);
+            fileService.mergeAndGenerateOutput(createClaimRequest.getTemplate(), TemplateEngineKind.Freemarker, nonImageVariableMap);
+            Claim claim = new Claim();
+            claim.setClaimTitle(createClaimRequest.getClaimTitle());
+            claim.setClaimContent(createClaimRequest.getClaimContent());
+            claim.setUserEndId(createClaimRequest.getUserEndId());
+            claim.setUserClaimId(createClaimRequest.getUserClaimId());
+//            claimRepository.save(claim);
+            return Optional.of(createClaimRequest);
         } catch (Exception e) {
             System.out.println("error: " + e);
         }
-        return null;
+        return Optional.empty();
     }
 
     private void checkUserEndExist(CreateClaimRequest createClaimRequest) {
@@ -76,7 +73,6 @@ public class ClaimServiceImpl implements ClaimService {
         if (userEndResult == null) {
             UserEnd userEnd = new UserEnd();
             userEnd.setUserEndDNI(createClaimRequest.getUserEndIdentifier());
-            userEnd.setUserEndMail(createClaimRequest.getUserEmail());
             userEnd.setUserEndPassword("123456");
             userEnd.setCreateOn(DateTimeUtils.getCurrentDateString(DateTimeConstants.YYYY_MM_DD_HYPHEN));
             userEndRepository.save(userEnd);

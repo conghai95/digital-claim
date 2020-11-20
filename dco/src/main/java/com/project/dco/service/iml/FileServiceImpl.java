@@ -1,6 +1,5 @@
 package com.project.dco.service.iml;
 
-import com.project.dco.dto.model.Claim;
 import com.project.dco.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -13,17 +12,14 @@ import java.util.List;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Map;
 
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.core.io.internal.ByteArrayOutputStream;
 import fr.opensagres.xdocreport.document.IXDocReport;
-import fr.opensagres.xdocreport.document.images.FileImageProvider;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
-import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -65,6 +61,20 @@ public class FileServiceImpl implements FileService {
         return null;
     }
 
+    @Override
+    public byte[] mergeAndGenerateOutput(String filName, TemplateEngineKind templateEngineKind, Map<String, Object> nonImageVariableMap) throws IOException, XDocReportException {
+        InputStream inputStream = new File(filePath + "/" + filName).toURI().toURL().openStream();
+        IXDocReport xDocReport = loadDocumentAsIDocxReport(inputStream, templateEngineKind);
+        IContext context = replaceVariablesInTemplateOtherThanImages(xDocReport, nonImageVariableMap);
+        byte[] mergedOutput = generateMergedOutput(xDocReport, context);
+        FileOutputStream os = new FileOutputStream(filePath + "/output/" + filName);
+        os.write(mergedOutput);
+        inputStream.close();
+        os.flush();
+        os.close();
+        return mergedOutput;
+    }
+
     private File createFolder() {
         File fileRootDir = new File(filePath);
         if (!fileRootDir.exists()) {
@@ -81,23 +91,9 @@ public class FileServiceImpl implements FileService {
         return false;
     }
 
-    //********
-    public byte[] mergeAndGenerateOutput(TemplateEngineKind templateEngineKind, Map<String, Object> nonImageVariableMap) throws IOException, XDocReportException {
-        InputStream inputStream = new File(filePath + "/template1.docx").toURI().toURL().openStream();
-        IXDocReport xdocReport = loadDocumentAsIDocxReport(inputStream, templateEngineKind);
-        IContext context = replaceVariablesInTemplateOtherThanImages(xdocReport, nonImageVariableMap);
-        byte[] mergedOutput = generateMergedOutput(xdocReport, context);
-        FileOutputStream os = new FileOutputStream(filePath + "/output/template1.docx");
-        os.write(mergedOutput);
-        inputStream.close();
-        os.flush();
-        os.close();
-        return mergedOutput;
-    }
-
     private IXDocReport loadDocumentAsIDocxReport(InputStream documentTemplateAsStream, TemplateEngineKind freemarkerOrVelocityTemplateKind) throws IOException, XDocReportException {
-        IXDocReport xdocReport = XDocReportRegistry.getRegistry().loadReport(documentTemplateAsStream, freemarkerOrVelocityTemplateKind);
-        return xdocReport;
+        IXDocReport xDocReport = XDocReportRegistry.getRegistry().loadReport(documentTemplateAsStream, freemarkerOrVelocityTemplateKind);
+        return xDocReport;
     }
 
     private IContext replaceVariablesInTemplateOtherThanImages(IXDocReport report, Map<String, Object> variablesToBeReplaced) throws XDocReportException {

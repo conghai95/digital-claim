@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping(value = "/claims")
+@CrossOrigin
 public class ClaimController {
 
     @Autowired
@@ -19,13 +22,13 @@ public class ClaimController {
     @PostMapping(value = "/create")
     public AppResponseEntity<?> createNewClaim(@RequestPart("createClaimRequest") String createClaimRequest, @RequestPart("files") MultipartFile[] multipartFile) {
         CreateClaimRequest claimRequest = JsonHelper.convertJson2Object(createClaimRequest, CreateClaimRequest.class);
-        Claim res = claimService.createNewClaim(claimRequest, multipartFile);
-        return AppResponseEntity.withSuccess(res);
+        Optional<Claim> res = claimService.createNewClaim(claimRequest, multipartFile);
+        return AppResponseEntity.withSuccess(res.get());
     }
 
     @PostMapping(value = "/add")
-    public AppResponseEntity<?> addNewClaim(@RequestBody Claim claim) {
-        return AppResponseEntity.withSuccess(claimService.addNewClaim(claim));
+    public AppResponseEntity<?> addNewClaim(@RequestBody CreateClaimRequest createClaimRequest) {
+        return AppResponseEntity.withSuccess(claimService.addNewClaim(createClaimRequest));
     }
 
     @GetMapping(value = "")

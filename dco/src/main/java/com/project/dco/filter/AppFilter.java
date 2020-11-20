@@ -19,7 +19,8 @@ public class AppFilter extends OncePerRequestFilter {
     protected static final String[] PUBLIC_URIS = new String[]{
             "/claims",
             "/users",
-            "/file"
+            "/file",
+            "/sysworkflow"
     };
 
     @Override

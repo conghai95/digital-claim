@@ -17,6 +17,7 @@
 
     <properties>
         <java.version>8</java.version>
+        <xdocreport.version>2.0.2</xdocreport.version>
     </properties>
 
     <dependencies>
@@ -34,30 +35,31 @@
             <systemPath>${project.basedir}/lib/ojdbc7.jar</systemPath>
         </dependency>
 
+        <!--xdocreport dependences-->
         <dependency>
             <groupId>fr.opensagres.xdocreport</groupId>
             <artifactId>fr.opensagres.xdocreport.core</artifactId>
-            <version>2.0.2</version>
+            <version>${xdocreport.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.opensagres.xdocreport</groupId>
             <artifactId>fr.opensagres.xdocreport.document</artifactId>
-            <version>2.0.2</version>
+            <version>${xdocreport.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.opensagres.xdocreport</groupId>
             <artifactId>fr.opensagres.xdocreport.document.docx</artifactId>
-            <version>2.0.2</version>
+            <version>${xdocreport.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.opensagres.xdocreport</groupId>
             <artifactId>fr.opensagres.xdocreport.converter</artifactId>
-            <version>2.0.2</version>
+            <version>${xdocreport.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.opensagres.xdocreport</groupId>
             <artifactId>fr.opensagres.xdocreport.template.freemarker</artifactId>
-            <version>2.0.2</version>
+            <version>${xdocreport.version}</version>
         </dependency>
 
     </dependencies>

@@ -1,6 +1,5 @@
 package com.project.dco.service;
 
-import com.project.dco.dto.model.Claim;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import org.springframework.core.io.InputStreamResource;
@@ -15,5 +14,5 @@ public interface FileService {
 
     InputStreamResource getFile(String fileName);
 
-    byte[] mergeAndGenerateOutput(TemplateEngineKind templateEngineKind, Map<String, Object> nonImageVariableMap) throws IOException, XDocReportException;
+    byte[] mergeAndGenerateOutput(String filName, TemplateEngineKind templateEngineKind, Map<String, Object> nonImageVariableMap) throws IOException, XDocReportException;
 }

@@ -4,6 +4,7 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -18,5 +19,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
             servletContext.getSessionCookieConfig().setName("GA");
             servletContext.setSessionTimeout(SESSION_TIMEOUT);
         };
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
