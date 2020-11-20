@@ -20,6 +20,8 @@ public class AppFilter extends OncePerRequestFilter {
             "/claims",
             "/users",
             "/file",
+            "/mail",
+            "/file",
             "/sysworkflow"
     };
 
