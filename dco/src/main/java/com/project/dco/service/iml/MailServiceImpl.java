@@ -109,7 +109,7 @@ public class MailServiceImpl implements MailService {
         if (template != null && template.length > 0) {
             for (MultipartFile tempt : template) {
                 String temptName = tempt.getOriginalFilename();
-                if ("html".equals(temptName.substring(temptName.lastIndexOf(".")))) {
+                if (".html".equals(temptName.substring(temptName.lastIndexOf(".")))) {
                     content.append("<br/>").append(new String(tempt.getBytes(), StandardCharsets.UTF_8));
                 }
             }

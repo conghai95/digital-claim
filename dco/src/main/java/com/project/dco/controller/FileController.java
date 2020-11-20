@@ -24,7 +24,7 @@ public class FileController {
         InputStreamResource res = fileService.getFile(fileName);
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + fileName);
         return AppResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .contentType(MediaType.parseMediaType("application/pdf"))
                 .headers(headers)
                 .body(res);
     }
