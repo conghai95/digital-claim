@@ -10,9 +10,10 @@ import java.util.List;
 
 public interface MailService {
 
-    void sendMail(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException, IOException;
+    Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException, IOException;
 
-    void sendMail(Mail mail, MultipartFile[] files) throws MessagingException, IOException;
+    Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException, IOException;
 
-    List<?> getHistoryByEmail(String email);
+    List<?> getMailList(int page, int perPage, String searchField, String searchText, String sortField,
+                              String sortType, String dateField, String timeForm, String timeTo);
 }

@@ -1,17 +1,12 @@
 package com.project.dco.controller;
 
-import com.project.dco.dto.request.CreateClaimRequest;
 import com.project.dco.dto.request.SendMailRequest;
 import com.project.dco.service.MailService;
 import com.project.dco_common.api.AppResponseEntity;
 import com.project.dco_common.api.HttpStatusResponse;
 import com.project.dco_common.utils.JsonHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -34,6 +29,34 @@ public class MailController {
             status.setMessage("Failed");
             return AppResponseEntity.withError(status);
         }
-
     }
+
+    @PostMapping(value = "")
+    public AppResponseEntity<?> mailTo(@RequestPart("mail") String mail, @RequestPart("files") MultipartFile[] multipartFile) {
+        try {
+            SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
+            mailService.mailTo(request, multipartFile);
+            return AppResponseEntity.withSuccess("Success");
+        } catch (Exception e) {
+            HttpStatusResponse status = new HttpStatusResponse();
+            status.setCode("500");
+            status.setHttp(500);
+            status.setMessage("Failed");
+            return AppResponseEntity.withError(status);
+        }
+    }
+
+    @GetMapping("/list")
+    public AppResponseEntity<?> getMailList(@RequestParam(required = false) int page,
+                                            @RequestParam(required = false) int perPage,
+                                            @RequestParam(required = false) String searchField,
+                                            @RequestParam(required = false) String searchText,
+                                            @RequestParam(required = false) String sortField,
+                                            @RequestParam(required = false) String sortType,
+                                            @RequestParam(required = false) String dateField,
+                                            @RequestParam(required = false) String timeForm,
+                                            @RequestParam(required = false) String timeTo) {
+        return AppResponseEntity.withSuccess(mailService.getMailList(page, perPage, searchField, searchText, sortField, sortType, dateField, timeForm, timeTo));
+    }
+
 }

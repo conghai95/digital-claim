@@ -1,16 +1,20 @@
 package com.project.dco.dto.model;
 
+import com.project.dco.dto.model.base.EntityBase;
 import lombok.Data;
 
-@Data
-public class Mail {
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-    String mailUserName;
-    String mailPassword;
-    String domain;
+@Data
+@Entity
+@Table(name = "mail")
+public class Mail extends EntityBase {
+
+    String from;
     String to;
     String cc;
     String bcc;
-    String sub;
+    String subject;
     String content;
 }

@@ -31,19 +31,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public JavaMailSender getJavaMailSender() {
+    public JavaMailSenderImpl getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
 
+        // set default mail
         mailSender.setUsername("conghaibk95@gmail.com");
-        mailSender.setPassword("123456");
+        mailSender.setPassword("*******");
 
         Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.debug", "true");
+
 
         return mailSender;
     }

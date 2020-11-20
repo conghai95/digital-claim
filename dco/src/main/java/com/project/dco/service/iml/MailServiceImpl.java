@@ -1,39 +1,46 @@
 package com.project.dco.service.iml;
 
+import com.project.dco.dao.MailRepository;
 import com.project.dco.dto.model.Mail;
 import com.project.dco.dto.request.SendMailRequest;
 import com.project.dco.service.MailService;
+import com.project.dco_common.constants.DateTimeConstants;
+import com.project.dco_common.utils.DateTimeUtils;
+import com.project.dco_common.utils.PageableUtil;
+import com.project.dco_common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Service
 public class MailServiceImpl implements MailService {
 
     @Autowired
-    private JavaMailSender emailSender;
+    private JavaMailSenderImpl emailSender;
 
-    private Properties props;
+    @Autowired
+    private MailRepository mailRepository;
 
+    // sending mail with default mail
     @Override
-    public void sendMail(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException {
+    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(sendMailRequest.getTo());
-        helper.setSubject(sendMailRequest.getSub());
-        helper.setText(sendMailRequest.getContent());
+        helper.setCc(sendMailRequest.getCc());
+        helper.setBcc(sendMailRequest.getBcc());
+        helper.setSubject(sendMailRequest.getSubject());
+        helper.setText(sendMailRequest.getContent(), true);
 
         if (files != null && files.length > 0) {
             for (MultipartFile multipartFile : files) {
@@ -41,49 +48,16 @@ public class MailServiceImpl implements MailService {
             }
         }
         emailSender.send(message);
+        return saveMail(sendMailRequest);
     }
 
+    // sending mail with dynamic mail from api
     @Override
-    public void sendMail(Mail mail, MultipartFile[] files) throws MessagingException {
-        String username = mail.getMailUserName();
-        String password = mail.getMailPassword();
-        String host = "";
-        switch (mail.getDomain()) {
-            case "gmail.com":
-                host = "smtp.gmail.com";
-                break;
-            case "yahoo.com":
-                host = "smtp.mail.yahoo.com";
-                break;
-            case "rediffmail.com":
-                host = "smtp.rediffmail.com";
-                break;
-            default:
-                host = "smtp.1and1.com";
-                break;
-        }
-        props.put("mail.smtp.host", host);
-
-        Session session = Session.getInstance(props,
-                new javax.mail.Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(username, password);
-                    }
-                });
-
-        Message message = new MimeMessage(session);
-        InternetAddress[] myToList = InternetAddress.parse(mail.getTo());
-        InternetAddress[] myBccList = InternetAddress.parse(mail.getBcc());
-        InternetAddress[] myCcList = InternetAddress.parse(mail.getCc());
-
-        message.setFrom(new InternetAddress(mail.getMailUserName()));
-        message.setRecipients(Message.RecipientType.TO, myToList);
-        message.setRecipients(Message.RecipientType.BCC, myBccList);
-        message.setRecipients(Message.RecipientType.CC, myCcList);
-        message.setSubject(mail.getSub());
+    public Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] files) throws MessagingException, IOException {
+        Message message = createMessageInstance(sendMailRequest);
 
         BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setContent(mail.getContent(), "testing...");
+        messageBodyPart.setContent(sendMailRequest.getContent(), "text/html; charset=utf-8");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -91,23 +65,71 @@ public class MailServiceImpl implements MailService {
         if (files != null && files.length > 0) {
             for (MultipartFile filePath : files) {
                 MimeBodyPart attachPart = new MimeBodyPart();
-                try {
-                    attachPart.setContent(filePath.getBytes(), filePath.getContentType());
-                    attachPart.setFileName(filePath.getOriginalFilename());
-                    attachPart.setDisposition(Part.ATTACHMENT);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                attachPart.setContent(filePath.getBytes(), filePath.getContentType());
+                attachPart.setFileName(filePath.getOriginalFilename());
+                attachPart.setDisposition(Part.ATTACHMENT);
                 multipart.addBodyPart(attachPart);
             }
         }
         message.setContent(multipart);
         Transport.send(message);
-
+        return saveMail(sendMailRequest);
     }
 
     @Override
-    public List<?> getHistoryByEmail(String email) {
-        return null;
+    public List<?> getMailList(int page, int perPage, String searchField, String searchText, String sortField,
+                               String sortType, String dateField, String timeForm, String timeTo) {
+        List<Mail> accounts = mailRepository.findAll();
+        if (!StringUtils.isEmpty(searchField) && !StringUtils.isEmpty(searchText) ||
+                !StringUtils.isEmpty(dateField) && !StringUtils.isEmpty(timeForm) && !StringUtils.isEmpty(timeTo) ||
+                !StringUtils.isEmpty(sortField) && !StringUtils.isEmpty(sortType)) {
+            accounts = accounts.stream().filter(e -> PageableUtil.searchObjectByField(e, searchField, searchText)).collect(Collectors.toList());
+        }
+        if (!StringUtils.isEmpty(dateField) && !StringUtils.isEmpty(timeForm) && !StringUtils.isEmpty(timeTo)) {
+            accounts = accounts.stream().filter(e -> PageableUtil.filterByDate(e, dateField, timeForm, timeTo)).collect(Collectors.toList());
+        }
+        if (!StringUtils.isEmpty(sortField) && !StringUtils.isEmpty(sortType)) {
+            try {
+                accounts = PageableUtil.getSort(accounts, sortField, sortType, Mail.class);
+            } catch (NoSuchFieldException e) {
+                System.out.println("sort is failed");
+            }
+        }
+        return PageableUtil.getPageable(page, perPage, accounts);
+    }
+
+    private Message createMessageInstance(SendMailRequest mail) throws MessagingException {
+        Properties props = emailSender.getJavaMailProperties();
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(mail.getFrom(), mail.getFromPass());
+                    }
+                });
+
+        InternetAddress[] myToList = InternetAddress.parse(mail.getTo());
+        InternetAddress[] myBccList = InternetAddress.parse(mail.getBcc());
+        InternetAddress[] myCcList = InternetAddress.parse(mail.getCc());
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(mail.getFrom()));
+        message.setRecipients(Message.RecipientType.TO, myToList);
+        message.setRecipients(Message.RecipientType.BCC, myBccList);
+        message.setRecipients(Message.RecipientType.CC, myCcList);
+        message.setSubject(mail.getSubject());
+        return message;
+    }
+
+    private Mail saveMail(SendMailRequest sendMailRequest) {
+        Mail mail = new Mail();
+        mail.setFrom(sendMailRequest.getFrom());
+        mail.setTo(sendMailRequest.getTo());
+        mail.setCc(sendMailRequest.getCc());
+        mail.setBcc(sendMailRequest.getBcc());
+        mail.setSubject(sendMailRequest.getSubject());
+        mail.setContent(sendMailRequest.getContent());
+        mail.setCreateOn(DateTimeUtils.getCurrentDateString(DateTimeConstants.YYYY_MM_DD_HYPHEN));
+        mailRepository.save(mail);
+        return mail;
     }
 }
