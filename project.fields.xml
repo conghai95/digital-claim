@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<fields templateEngineKind="Freemarker" >
+	<description><![CDATA[]]></description>
+	<field name="createClaimRequest.claimContent" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.claimTitle" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.status" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.template" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.userClaimId" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.userEndId" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+	<field name="createClaimRequest.userEndIdentifier" list="false" imageName="" syntaxKind="">
+		<description><![CDATA[]]></description>
+	</field>
+</fields>

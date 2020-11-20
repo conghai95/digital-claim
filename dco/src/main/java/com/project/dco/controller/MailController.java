@@ -20,8 +20,7 @@ public class MailController {
     public AppResponseEntity<?> sendMail(@RequestPart("sendMailRequest") String sendMailRequest, @RequestPart("files") MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(sendMailRequest, SendMailRequest.class);
-            mailService.sendMail(request, multipartFile);
-            return AppResponseEntity.withSuccess("Success");
+            return AppResponseEntity.withSuccess(mailService.sendMail(request, multipartFile));
         } catch (Exception e) {
             HttpStatusResponse status = new HttpStatusResponse();
             status.setCode("500");
@@ -35,8 +34,7 @@ public class MailController {
     public AppResponseEntity<?> mailTo(@RequestPart("mail") String mail, @RequestPart("files") MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
-            mailService.mailTo(request, multipartFile);
-            return AppResponseEntity.withSuccess("Success");
+            return AppResponseEntity.withSuccess(mailService.mailTo(request, multipartFile));
         } catch (Exception e) {
             HttpStatusResponse status = new HttpStatusResponse();
             status.setCode("500");
