@@ -1,6 +1,7 @@
 package com.project.dco.service.iml;
 
 import com.project.dco.dao.MailRepository;
+import com.project.dco.dto.common.AttachedFileModel;
 import com.project.dco.dto.model.Mail;
 import com.project.dco.dto.request.SendMailRequest;
 import com.project.dco.service.MailService;
@@ -34,8 +35,13 @@ public class MailServiceImpl implements MailService {
 
     // sending mail with default mail
     @Override
-    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile template, MultipartFile[] files) throws MessagingException, IOException {
-        String tempt = new String(template.getBytes());
+    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
+        List<String> tempt = new ArrayList<>();
+        if (template != null && template.length > 0) {
+            for (MultipartFile file : template) {
+                tempt.add(new String(file.getBytes()));
+            }
+        }
         MimeMessage message = createMimeMessage(sendMailRequest, tempt, files);
         emailSender.send(message);
         return saveMail(sendMailRequest);
@@ -44,24 +50,28 @@ public class MailServiceImpl implements MailService {
     // sending mail with base64 file
     @Override
     public Mail sendMail(SendMailRequest sendMailRequest) throws MessagingException, IOException {
-        String template = "";
-        if (!StringUtils.isEmpty(sendMailRequest.getTemplate())) {
-            byte[] decodedTempt = Base64.getDecoder().decode(sendMailRequest.getTemplate());
-            template = new String(decodedTempt);
+        List<String> template = new ArrayList<>();
+        if (sendMailRequest.getTemplates() != null && sendMailRequest.getTemplates().size() > 0) {
+            for (String encodeTemplate : sendMailRequest.getTemplates()) {
+                byte[] decodedTempt = Base64.getDecoder().decode(encodeTemplate);
+                template.add(new String(decodedTempt));
+            }
         }
         List<File> files = new ArrayList<>();
-        if (!StringUtils.isEmpty(sendMailRequest.getAttachedFile()) && !StringUtils.isEmpty(sendMailRequest.getFileName())) {
-            byte[] decodeAttachedFile = Base64.getDecoder().decode(sendMailRequest.getAttachedFile());
-            String attachedFile = new String(decodeAttachedFile);
-            File file = new File("D:/" + sendMailRequest.getFileName());
-            file.createNewFile();
+        List<AttachedFileModel> attachedFiles = sendMailRequest.getAttachedFiles();
+        if (attachedFiles != null && attachedFiles.size() > 0) {
+            for (AttachedFileModel attachedFile : attachedFiles) {
+                byte[] decodeAttachedFile = Base64.getDecoder().decode(attachedFile.getAttachedFile());
+                File file = new File("D:/" + attachedFile.getFileName());
+                file.deleteOnExit();
 
-            BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
-            bof.write(attachedFile.getBytes());
-            bof.flush();
-            bof.close();
+                BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
+                bof.write(new String(decodeAttachedFile).getBytes());
+                bof.flush();
+                bof.close();
 
-            files.add(file);
+                files.add(file);
+            }
         }
         MimeMessage message = createMimeMessage(sendMailRequest, template, files.stream().toArray());
         emailSender.send(message);
@@ -70,7 +80,7 @@ public class MailServiceImpl implements MailService {
 
     // sending mail with dynamic mail from api
     @Override
-    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
+    public Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
         Properties props = emailSender.getJavaMailProperties();
         Session session = Session.getInstance(props,
                 new javax.mail.Authenticator() {
@@ -104,7 +114,6 @@ public class MailServiceImpl implements MailService {
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
-
         if (files != null && files.length > 0) {
             for (MultipartFile filePath : files) {
                 MimeBodyPart attachPart = new MimeBodyPart();
@@ -141,7 +150,7 @@ public class MailServiceImpl implements MailService {
         return PageableUtil.getPageable(page, perPage, accounts);
     }
 
-    private MimeMessage createMimeMessage(SendMailRequest sendMailRequest, String template, Object[] files) throws MessagingException {
+    private MimeMessage createMimeMessage(SendMailRequest sendMailRequest, List<String> template, Object[] files) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 

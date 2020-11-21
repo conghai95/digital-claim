@@ -26,10 +26,10 @@ public class DcoApplication {
 		File xmlFieldsFile = new File("project.fields.xml");
 		fieldsMetadata.saveXML(new FileOutputStream(xmlFieldsFile), true);
 
-//		byte[] array = Files.readAllBytes(Paths.get("D:/share/abc.txt"));
-//		String encodedString = Base64.getEncoder().encodeToString(array);
-//		System.out.println("encodedString: " + encodedString);
-//
+//		byte[] array = Files.readAllBytes(Paths.get("D:/template.html"));
+		String encodedString = Base64.getEncoder().encodeToString("luong van cong hai".getBytes());
+		System.out.println("encodedBase64String: " + encodedString);
+
 //		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
 //		String decodedString = new String(decodedBytes);
 //

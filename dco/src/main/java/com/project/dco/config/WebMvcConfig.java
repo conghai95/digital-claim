@@ -35,7 +35,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         // set default mail
         mailSender.setUsername("conghaibk95@gmail.com");
-        mailSender.setPassword("1234");
+        mailSender.setPassword("123456");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");
