@@ -1,5 +1,6 @@
 package com.project.dco.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,12 @@ import java.util.Properties;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private static final int SESSION_TIMEOUT = 1;
+
+    @Value("${mail.username}")
+    private String mailUserName;
+
+    @Value("${mail.password}")
+    private String mailPassword;
 
     @Bean
     public ServletContextInitializer servletContextInitializer() {
@@ -32,10 +39,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Bean
     public JavaMailSenderImpl getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
         // set default mail
-        mailSender.setUsername("conghaibk95@gmail.com");
-        mailSender.setPassword("123456");
+        mailSender.setUsername(mailUserName);
+        mailSender.setPassword(mailPassword);
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");
