@@ -3,7 +3,7 @@ package com.project.dco.controller;
 import com.project.dco.dto.request.SendMailRequest;
 import com.project.dco.service.MailService;
 import com.project.dco_common.api.AppResponseEntity;
-import com.project.dco_common.api.HttpStatusResponse;
+import com.project.dco_common.exception.ExceptionCustomize;
 import com.project.dco_common.utils.JsonHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,16 +21,8 @@ public class MailController {
     public AppResponseEntity<?> sendMail(@RequestPart("sendMailRequest") String sendMailRequest,
                                          @RequestPart(name = "template", required = false) MultipartFile[] template,
                                          @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
-        try {
-            SendMailRequest request = JsonHelper.convertJson2Object(sendMailRequest, SendMailRequest.class);
-            return AppResponseEntity.withSuccess(mailService.sendMail(request, template, multipartFile));
-        } catch (Exception e) {
-            HttpStatusResponse status = new HttpStatusResponse();
-            status.setCode("500");
-            status.setHttp(500);
-            status.setMessage("Failed");
-            return AppResponseEntity.withError(status);
-        }
+        SendMailRequest request = JsonHelper.convertJson2Object(sendMailRequest, SendMailRequest.class);
+        return AppResponseEntity.withSuccess(mailService.sendMail(request, template, multipartFile));
     }
 
     // sending mail with dynamic mail from api
@@ -38,30 +30,18 @@ public class MailController {
     public AppResponseEntity<?> mailTo(@RequestPart("mail") String mail,
                                        @RequestPart(name = "template", required = false) MultipartFile[] template,
                                        @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
+        SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
         try {
-            SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
             return AppResponseEntity.withSuccess(mailService.mailTo(request, template, multipartFile));
         } catch (Exception e) {
-            HttpStatusResponse status = new HttpStatusResponse();
-            status.setCode("500");
-            status.setHttp(500);
-            status.setMessage("Failed");
-            return AppResponseEntity.withError(status);
+            throw new ExceptionCustomize();
         }
     }
 
     // sending mail with base64 file
     @PostMapping(value = "/sending")
     public AppResponseEntity<?> mailSending(@RequestBody SendMailRequest sendMailRequest) {
-        try {
-            return AppResponseEntity.withSuccess(mailService.sendMail(sendMailRequest));
-        } catch (Exception e) {
-            HttpStatusResponse status = new HttpStatusResponse();
-            status.setCode("500");
-            status.setHttp(500);
-            status.setMessage("Failed");
-            return AppResponseEntity.withError(status);
-        }
+        return AppResponseEntity.withSuccess(mailService.sendMail(sendMailRequest));
     }
 
     @GetMapping("/list")
