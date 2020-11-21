@@ -17,37 +17,33 @@ import java.util.Base64;
 public class DcoApplication {
 
 	public static void main(String[] args) throws XDocReportException, IOException {
-//		SpringApplication.run(DcoApplication.class, args);
-//
-//		FieldsMetadata fieldsMetadata = new FieldsMetadata(TemplateEngineKind.Freemarker.name());
-//
-//		fieldsMetadata.load("createClaimRequest", CreateClaimRequest.class);
-//
-//		File xmlFieldsFile = new File("project.fields.xml");
-//		fieldsMetadata.saveXML(new FileOutputStream(xmlFieldsFile), true);
+		SpringApplication.run(DcoApplication.class, args);
 
-		byte[] array = Files.readAllBytes(Paths.get("D:/share/file/abc.txt"));
-		String encodedString = Base64.getEncoder().encodeToString(array);
-		System.out.println("encodedString: " + encodedString);
+		FieldsMetadata fieldsMetadata = new FieldsMetadata(TemplateEngineKind.Freemarker.name());
 
-		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-		String decodedString = new String(decodedBytes);
+		fieldsMetadata.load("createClaimRequest", CreateClaimRequest.class);
 
-		File file = new File("D:/share/file/music.txt");
-		file.createNewFile();
-		BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
-		bof.write(decodedString.getBytes());
-		System.out.println("decodedString: " + decodedString);
-		file.deleteOnExit();
-		FileInputStream in = new FileInputStream(file);
-		int i=0;
-		System.out.println("a: ");
-		while((i=in.read())!=-1){
-			System.out.print((char)i);
-		}
-		in.close();
-		bof.flush();
-		bof.close();
+		File xmlFieldsFile = new File("project.fields.xml");
+		fieldsMetadata.saveXML(new FileOutputStream(xmlFieldsFile), true);
+
+//		byte[] array = Files.readAllBytes(Paths.get("D:/share/abc.txt"));
+//		String encodedString = Base64.getEncoder().encodeToString(array);
+//		System.out.println("encodedString: " + encodedString);
+//
+//		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+//		String decodedString = new String(decodedBytes);
+//
+//		File file = new File("D:/share/music.txt");
+//		file.createNewFile();
+//		BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
+//		bof.write(decodedString.getBytes());
+//		System.out.println("decodedString: " + decodedString);
+//
+//		FileInputStream in = new FileInputStream("D:/share/music.txt");
+//
+//		in.close();
+//		bof.flush();
+//		bof.close();
 	}
 
 }

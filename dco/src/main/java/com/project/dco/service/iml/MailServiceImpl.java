@@ -16,10 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.*;
 import javax.mail.internet.*;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,39 +30,77 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private MailRepository mailRepository;
 
-    private final String mailContentType = "text/html; charset=utf-8";
+    private static final String mailContentType = "text/html; charset=utf-8";
 
     // sending mail with default mail
     @Override
-    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
-        MimeMessage message = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile template, MultipartFile[] files) throws MessagingException, IOException {
+        String tempt = new String(template.getBytes());
+        MimeMessage message = createMimeMessage(sendMailRequest, tempt, files);
+        emailSender.send(message);
+        return saveMail(sendMailRequest);
+    }
 
-        helper.setTo(sendMailRequest.getTo());
-        if (!StringUtils.isEmpty(sendMailRequest.getCc())) {
-            helper.setCc(sendMailRequest.getCc());
+    // sending mail with base64 file
+    @Override
+    public Mail sendMail(SendMailRequest sendMailRequest) throws MessagingException, IOException {
+        String template = "";
+        if (!StringUtils.isEmpty(sendMailRequest.getTemplate())) {
+            byte[] decodedTempt = Base64.getDecoder().decode(sendMailRequest.getTemplate());
+            template = new String(decodedTempt);
         }
-        if (!StringUtils.isEmpty(sendMailRequest.getBcc())) {
-            helper.setBcc(sendMailRequest.getBcc());
+        List<File> files = new ArrayList<>();
+        if (!StringUtils.isEmpty(sendMailRequest.getAttachedFile()) && !StringUtils.isEmpty(sendMailRequest.getFileName())) {
+            byte[] decodeAttachedFile = Base64.getDecoder().decode(sendMailRequest.getAttachedFile());
+            String attachedFile = new String(decodeAttachedFile);
+            File file = new File("D:/" + sendMailRequest.getFileName());
+            file.createNewFile();
+
+            BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
+            bof.write(attachedFile.getBytes());
+            bof.flush();
+            bof.close();
+
+            files.add(file);
         }
-        helper.setSubject(sendMailRequest.getSubject());
-        helper.setText(createContentMail(sendMailRequest, template), true);
-        if (files != null && files.length > 0) {
-            for (MultipartFile multipartFile : files) {
-                helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
-            }
-        }
+        MimeMessage message = createMimeMessage(sendMailRequest, template, files.stream().toArray());
         emailSender.send(message);
         return saveMail(sendMailRequest);
     }
 
     // sending mail with dynamic mail from api
     @Override
-    public Mail mailTo(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
-        Message message = createMessageInstance(sendMailRequest);
+    public Mail sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) throws MessagingException, IOException {
+        Properties props = emailSender.getJavaMailProperties();
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(sendMailRequest.getFrom(), sendMailRequest.getFromPass());
+                    }
+                });
+
+        InternetAddress[] myToList = InternetAddress.parse(sendMailRequest.getTo());
+        InternetAddress[] myBccList = InternetAddress.parse(sendMailRequest.getBcc());
+        InternetAddress[] myCcList = InternetAddress.parse(sendMailRequest.getCc());
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(sendMailRequest.getFrom()));
+        message.setRecipients(Message.RecipientType.TO, myToList);
+        message.setRecipients(Message.RecipientType.BCC, myBccList);
+        message.setRecipients(Message.RecipientType.CC, myCcList);
+        message.setSubject(sendMailRequest.getSubject());
 
         BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setContent(createContentMail(sendMailRequest, template), mailContentType);
+        StringBuilder content = new StringBuilder(sendMailRequest.getContent());
+        if (template != null && template.length > 0) {
+            for (MultipartFile tempt : template) {
+                String temptName = tempt.getOriginalFilename();
+                if (!StringUtils.isEmpty(temptName) && ".html".equals(temptName.substring(temptName.lastIndexOf(".")))) {
+                    content.append("<br/>").append(new String(tempt.getBytes(), StandardCharsets.UTF_8));
+                }
+            }
+        }
+        messageBodyPart.setContent(content, mailContentType);
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -104,38 +141,31 @@ public class MailServiceImpl implements MailService {
         return PageableUtil.getPageable(page, perPage, accounts);
     }
 
-    private String createContentMail(SendMailRequest sendMailRequest, MultipartFile[] template) throws IOException {
-        StringBuilder content = new StringBuilder(sendMailRequest.getContent());
-        if (template != null && template.length > 0) {
-            for (MultipartFile tempt : template) {
-                String temptName = tempt.getOriginalFilename();
-                if (".html".equals(temptName.substring(temptName.lastIndexOf(".")))) {
-                    content.append("<br/>").append(new String(tempt.getBytes(), StandardCharsets.UTF_8));
+    private MimeMessage createMimeMessage(SendMailRequest sendMailRequest, String template, Object[] files) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setTo(sendMailRequest.getTo());
+        if (!StringUtils.isEmpty(sendMailRequest.getCc())) {
+            helper.setCc(sendMailRequest.getCc());
+        }
+        if (!StringUtils.isEmpty(sendMailRequest.getBcc())) {
+            helper.setBcc(sendMailRequest.getBcc());
+        }
+        helper.setSubject(sendMailRequest.getSubject());
+        helper.setText(sendMailRequest.getContent() + "<br/>" + template, true);
+        if (files != null && files.length > 0) {
+            for (Object file : files) {
+                if (file instanceof MultipartFile) {
+                    MultipartFile receivedFile = (MultipartFile) file;
+                    helper.addAttachment(Objects.requireNonNull(receivedFile.getOriginalFilename()), receivedFile);
+                }
+                if (file instanceof File) {
+                    File receivedFile = (File) file;
+                    helper.addAttachment(receivedFile.getName(), receivedFile);
                 }
             }
         }
-        return content.toString();
-    }
-
-    private Message createMessageInstance(SendMailRequest mail) throws MessagingException {
-        Properties props = emailSender.getJavaMailProperties();
-        Session session = Session.getInstance(props,
-                new javax.mail.Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(mail.getFrom(), mail.getFromPass());
-                    }
-                });
-
-        InternetAddress[] myToList = InternetAddress.parse(mail.getTo());
-        InternetAddress[] myBccList = InternetAddress.parse(mail.getBcc());
-        InternetAddress[] myCcList = InternetAddress.parse(mail.getCc());
-
-        Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(mail.getFrom()));
-        message.setRecipients(Message.RecipientType.TO, myToList);
-        message.setRecipients(Message.RecipientType.BCC, myBccList);
-        message.setRecipients(Message.RecipientType.CC, myCcList);
-        message.setSubject(mail.getSubject());
         return message;
     }
 

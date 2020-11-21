@@ -12,5 +12,7 @@ public class SendMailRequest {
     String bcc;
     String subject;
     String content;
-
+    String template;
+    String attachedFile;
+    String fileName;
 }

@@ -18,7 +18,7 @@ public class MailController {
 
     @PostMapping(value = "/send")
     public AppResponseEntity<?> sendMail(@RequestPart("sendMailRequest") String sendMailRequest,
-                                         @RequestPart(name = "template", required = false) MultipartFile[] template,
+                                         @RequestPart(name = "template", required = false) MultipartFile template,
                                          @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(sendMailRequest, SendMailRequest.class);
@@ -38,7 +38,20 @@ public class MailController {
                                        @RequestPart(name = "files", required = false) MultipartFile[] multipartFile) {
         try {
             SendMailRequest request = JsonHelper.convertJson2Object(mail, SendMailRequest.class);
-            return AppResponseEntity.withSuccess(mailService.mailTo(request, template, multipartFile));
+            return AppResponseEntity.withSuccess(mailService.sendMail(request, template, multipartFile));
+        } catch (Exception e) {
+            HttpStatusResponse status = new HttpStatusResponse();
+            status.setCode("500");
+            status.setHttp(500);
+            status.setMessage("Failed");
+            return AppResponseEntity.withError(status);
+        }
+    }
+
+    @PostMapping(value = "/sending")
+    public AppResponseEntity<?> mailSending(@RequestBody SendMailRequest sendMailRequest) {
+        try {
+            return AppResponseEntity.withSuccess(mailService.sendMail(sendMailRequest));
         } catch (Exception e) {
             HttpStatusResponse status = new HttpStatusResponse();
             status.setCode("500");
