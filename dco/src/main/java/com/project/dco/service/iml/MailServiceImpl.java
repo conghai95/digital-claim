@@ -37,21 +37,17 @@ public class MailServiceImpl implements MailService {
     // sending mail with default mail
     @Override
     public Optional<Mail> sendMail(SendMailRequest sendMailRequest, MultipartFile[] template, MultipartFile[] files) {
-        List<String> tempt = new ArrayList<>();
-        if (template != null && template.length > 0) {
-            for (MultipartFile file : template) {
-                try {
+        try {
+            List<String> tempt = new ArrayList<>();
+            if (template != null && template.length > 0) {
+                for (MultipartFile file : template) {
                     tempt.add(new String(file.getBytes()));
-                } catch (IOException e) {
-                    throw new ExceptionCustomize();
                 }
             }
-        }
-        try {
             MimeMessage message = createMimeMessage(sendMailRequest, tempt, files);
             emailSender.send(message);
             return Optional.of(saveMail(sendMailRequest));
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             throw new ExceptionCustomize();
         }
     }
@@ -59,40 +55,13 @@ public class MailServiceImpl implements MailService {
     // sending mail with base64 file
     @Override
     public Optional<Mail> sendMail(SendMailRequest sendMailRequest) {
-        List<String> template = new ArrayList<>();
-        if (sendMailRequest.getTemplates() != null && sendMailRequest.getTemplates().size() > 0) {
-            for (String encodeTemplate : sendMailRequest.getTemplates()) {
-                byte[] decodedTempt = Base64.getDecoder().decode(encodeTemplate);
-                template.add(new String(decodedTempt));
-            }
-        }
-
-        List<File> files = new ArrayList<>();
-        List<AttachedFileModel> attachedFiles = sendMailRequest.getAttachedFiles();
         try {
-            if (attachedFiles != null && attachedFiles.size() > 0) {
-                for (AttachedFileModel attachedFile : attachedFiles) {
-                    byte[] decodeAttachedFile = Base64.getDecoder().decode(attachedFile.getAttachedFile());
-                    File file = new File("D:/" + attachedFile.getFileName());
-                    file.deleteOnExit();
-
-                    BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
-                    bof.write(new String(decodeAttachedFile).getBytes());
-                    bof.flush();
-                    bof.close();
-
-                    files.add(file);
-                }
-            }
-        } catch (IOException e) {
-            throw new ExceptionCustomize();
-        }
-
-        try {
-            MimeMessage message = createMimeMessage(sendMailRequest, template, files.stream().toArray());
+            List<String> templates = getDecodedTemplate(sendMailRequest.getTemplates());
+            List<File> files = getDecodedFiles(sendMailRequest.getAttachedFiles());
+            MimeMessage message = createMimeMessage(sendMailRequest, templates, files.toArray());
             emailSender.send(message);
             return Optional.of(saveMail(sendMailRequest));
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             throw new ExceptionCustomize();
         }
     }
@@ -167,6 +136,36 @@ public class MailServiceImpl implements MailService {
             }
         }
         return PageableUtil.getPageable(page, perPage, accounts);
+    }
+
+    private List<String> getDecodedTemplate(List<String> templates) {
+        List<String> templateList = new ArrayList<>();
+        if (templates != null && templates.size() > 0) {
+            for (String encodeTemplate : templates) {
+                byte[] decodedTempt = Base64.getDecoder().decode(encodeTemplate);
+                templateList.add(new String(decodedTempt));
+            }
+        }
+        return templateList;
+    }
+
+    private List<File> getDecodedFiles(List<AttachedFileModel> attachedFiles) throws IOException {
+        List<File> files = new ArrayList<>();
+        if (attachedFiles != null && attachedFiles.size() > 0) {
+            for (AttachedFileModel attachedFile : attachedFiles) {
+                byte[] decodeAttachedFile = Base64.getDecoder().decode(attachedFile.getAttachedFile());
+                File file = new File("D:/" + attachedFile.getFileName());
+                file.deleteOnExit();
+
+                BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(file));
+                bof.write(new String(decodeAttachedFile).getBytes());
+                bof.flush();
+                bof.close();
+
+                files.add(file);
+            }
+        }
+        return files;
     }
 
     private MimeMessage createMimeMessage(SendMailRequest sendMailRequest, List<String> template, Object[] files) throws MessagingException {
