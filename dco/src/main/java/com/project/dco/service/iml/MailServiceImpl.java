@@ -140,7 +140,7 @@ public class MailServiceImpl implements MailService {
 
     private List<String> getDecodedTemplate(List<String> templates) {
         List<String> templateList = new ArrayList<>();
-        if (templates != null && templates.size() > 0) {
+        if (templates != null && !templates.isEmpty()) {
             for (String encodeTemplate : templates) {
                 byte[] decodedTempt = Base64.getDecoder().decode(encodeTemplate);
                 templateList.add(new String(decodedTempt));
@@ -151,7 +151,7 @@ public class MailServiceImpl implements MailService {
 
     private List<File> getDecodedFiles(List<AttachedFileModel> attachedFiles) throws IOException {
         List<File> files = new ArrayList<>();
-        if (attachedFiles != null && attachedFiles.size() > 0) {
+        if (attachedFiles != null && !attachedFiles.isEmpty()) {
             for (AttachedFileModel attachedFile : attachedFiles) {
                 byte[] decodeAttachedFile = Base64.getDecoder().decode(attachedFile.getAttachedFile());
                 File file = new File("D:/" + attachedFile.getFileName());
