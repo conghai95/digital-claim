@@ -1,5 +1,10 @@
 server:
   port: 8081
+  ssl:
+    key-store: D:\share\file\serverKeystore.p12
+    key-store-password: 123456
+    keyStoreType: PKCS12
+    keyAlias: senderKeyPair
 
 #spring:
 #  datasource:
